@@ -1,3 +1,4 @@
+import random
 from typing import List
 from matplotlib import pyplot as plt
 import torch.utils.data.dataset
@@ -26,25 +27,38 @@ def main():
     # define constants
     epsilon: float = 0.05
     cumulative_reward: float = 0
+    cumulative_reward_list: List = []
     loss: List = []
 
     for i in enumerate(X):
         # Predict output
-        predict_output = neural_network.predict(X[i[0]])
-        _, predicted_class = predict_output[0].max(0)
         _, true_class = y[i[0]].max(0)
 
-        if predicted_class == 0 and true_class == 0:
-            cumulative_reward += 1
+        if random.random() < epsilon:
+            predicted_class = random.choice([0, 1])
+            if predicted_class == 0 and true_class == 0:
+                cumulative_reward += 1
 
-        elif predicted_class == 0 and true_class == 1:
-            cumulative_reward -= 1
+            elif predicted_class == 0 and true_class == 1:
+                cumulative_reward -= 1
+        else:
+            predict_output = neural_network.predict(X[i[0]])
+            _, predicted_class = predict_output.max(0)
+
+            if predicted_class == 0 and true_class == 0:
+                cumulative_reward += 1
+
+            elif predicted_class == 0 and true_class == 1:
+                cumulative_reward -= 1
+
         new_loss = neural_network.fit(X[i[0]], y[i[0]])
         loss.append(new_loss)
+        cumulative_reward_list.append(cumulative_reward)
         print("cumulative_reward: %s" % cumulative_reward)
 
-    plt.plot(loss)
+    plt.plot(cumulative_reward_list)
     plt.show()
+
 
 if __name__ == "__main__":
     main()
